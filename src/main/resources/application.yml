@@ -1,11 +1,11 @@
 spring:
   datasource:
-    url: jdbc:mysql://db-server:3306/mydb # compose.yml? service ??? dns ??
+    url: jdbc:mysql://db-server:3306/mydb # compose.yml의 services 이름이 dns 역할 
     username: root
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
-      host: cache-server # compose.yml? service ??
+      host: cache-server 
       port: 6379
 
