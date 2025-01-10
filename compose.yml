@@ -1,0 +1,49 @@
+# ./gradlew clean build (COPY할 jar를 먼저 생성)
+
+# docker compose up -d --build (수정된 image 새로 빌드이므로 가급적 쓰자!)
+# docker compose down
+# docker compose ps -a
+# docker compose logs
+# docker compose pull (이미지 다운/업데이트)
+
+# docker system prune -a (모든 이미지와 관련 설정 삭제 : 주의해서 사용)
+
+services:
+
+  api-server:
+    build: . # Dockerfile이 위치한 상대경로(기준은 compose.yml의 위치)
+    ports:
+      - 8080:8080
+    depends_on: # 아래 적은 container가 실행된 이후에 실행하겠다는 의미(순서 보장)
+      db-server:
+        condition: service_healthy # 성공적으로 실행 됬는지 확인 기준
+
+  # 설정(environment 등)등이 바뀌면 기존 volume 지워줘야 적용됨
+  # 데이터가 이미 있는 경우는 db container에 접속하여 설정을 입력하는 방식으로 진행!
+  db-server:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: mydb
+    volumes:
+      - ./mysql_data:/var/lib/mysql # compose.yml 파일이 있는 root/mysql_data
+    ports:
+      - 3306:3306
+    healthcheck: # service_healthy의 기준을 작성
+      test: [ "CMD", "mysqladmin", "ping" ]
+      interval: 5s
+      retries: 10
+
+  cache-server:
+    image: redis
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      retries: 10
+
+  web-server: # 서비스 이름(--name)
+    image: nginx
+    ports:
+      - 80:80
